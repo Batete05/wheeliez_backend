@@ -17,26 +17,33 @@ const allowedOrigins = process.env.FRONTEND_URL
       "http://localhost:5173",
       "https://wheeliz-web.vercel.app",
       "https://wheeliz-production.up.railway.app",
+      "https://wheeliezbackend-production.up.railway.app", // ✅ ADD THIS
+      "wheeliezworld.com", // ✅ ADD THIS
     ];
 
 const corsOptions = {
   origin: function (origin: any, callback: any) {
-    console.log("Incoming origin:", origin); // DEBUG
+    console.log("Incoming origin:", origin);
 
-    // allow requests without origin (Postman, server-to-server)
+    // Allow no origin (Postman, curl, server-to-server)
     if (!origin) return callback(null, true);
 
-    // allow localhost automatically
+    // Allow localhost
     if (origin.startsWith("http://localhost")) {
       return callback(null, true);
     }
 
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log("Blocked origin:", origin);
-      callback(new Error("CORS blocked: " + origin));
+    // Allow same-origin (Swagger UI on backend)
+    if (origin === process.env.API_URL) {
+      return callback(null, true);
     }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.log("Blocked origin:", origin);
+    return callback(null, false); // 👈 IMPORTANT change
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
